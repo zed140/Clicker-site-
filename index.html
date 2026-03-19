@@ -259,8 +259,13 @@
         });
         const data = await res.json();
         if (data && data[0]) {
-          count = data[0].count;
-          countEl.textContent = Number(count).toLocaleString();
+          const serverCount = Number(data[0].count);
+          // Only update if server count is higher than what we're showing
+          // This prevents the counter jumping back down when clicks haven't saved yet
+          if (serverCount > count) {
+            count = serverCount;
+            countEl.textContent = count.toLocaleString();
+          }
           countEl.classList.remove('loading');
         }
       } catch(e) {
