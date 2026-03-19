@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Click Click Click</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --fg: #f0ece0;
+      --accent: #ff3c00;
+      --muted: #2a2a2a;
+      --border: #333;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Space Mono', monospace;
+      overflow: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    #cursor {
+      position: fixed;
+      width: 18px; height: 18px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: transform 0.08s ease, width 0.1s, height 0.1s;
+      z-index: 9999;
+      mix-blend-mode: difference;
+    }
+    #cursor.clicking {
+      width: 28px; height: 28px;
+    }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+      pointer-events: none;
+      opacity: 0.4;
+      z-index: 1;
+    }
+
+    /* Grid lines background */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.2;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #app {
+      position: relative; z-index: 2;
+      width: 100%; height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    /* Counter display */
+    #counter-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    #label {
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    #count {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(6rem, 20vw, 14rem);
+      line-height: 1;
+      color: var(--fg);
+      transition: transform 0.05s ease;
+      user-select: none;
+      position: relative;
+    }
+
+    #count.bump {
+      transform: scale(1.06);
+      color: var(--accent);
+    }
+
+    /* Scanline on counter */
+    #count::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,0.08) 3px,
+        rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none;
+    }
+
+    /* Click button */
+    #clicker {
+      position: relative;
+      background: var(--fg);
+      color: var(--bg);
+      border: none;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      letter-spacing: 0.12em;
+      padding: 18px 60px;
+      cursor: none;
+      transition: transform 0.08s ease, background 0.08s;
+      outline: none;
+      clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+      margin-top: 10px;
+    }
+
+    #clicker:hover {
+      background: var(--accent);
+      color: var(--fg);
+    }
+
+    #clicker:active {
+      transform: scale(0.94) translateY(3px);
+    }
+
+    /* Decorative corner labels */
+    .corner {
+      position: fixed;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: #444;
+      text-transform: uppercase;
+      z-index: 3;
+    }
+    .corner.tl { top: 20px; left: 24px; }
+    .corner.tr { top: 20px; right: 24px; text-align: right; }
+    .corner.bl { bottom: 20px; left: 24px; }
+    .corner.br { bottom: 20px; right: 24px; text-align: right; }
+
+    /* Streak display */
+    #streak {
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      color: var(--accent);
+      margin-top: 14px;
+      min-height: 1.2em;
+      text-transform: uppercase;
+      transition: opacity 0.3s;
+    }
+
+    /* Floating +1 particles */
+    .particle {
+      position: fixed;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      color: var(--accent);
+      pointer-events: none;
+      z-index: 100;
+      animation: floatUp 0.8s ease-out forwards;
+      user-select: none;
+    }
+
+    @keyframes floatUp {
+      0%   { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-80px) scale(0.5); }
+    }
+
+    /* Horizontal rule decorations */
+    .rule {
+      width: min(320px, 80vw);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="cursor"></div>
+
+  <span class="corner tl">CLICK<br>CLICK<br>CLICK</span>
+  <span class="corner tr" id="session-time">00:00:00</span>
+  <span class="corner bl" id="cps-display">0.00 clicks/sec</span>
+  <span class="corner br">v1.0.0</span>
+
+  <div id="app">
+    <div id="counter-wrap">
+      <div id="label">Total Clicks</div>
+      <div id="count">0</div>
+    </div>
+
+    <div class="rule"></div>
+
+    <button id="clicker">Click Here</button>
+
+    <div id="streak"></div>
+  </div>
+
+  <script>
+    // Cursor
+    const cursor = document.getElementById('cursor');
+    document.addEventListener('mousemove', e => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+    });
+
+    // State
+    let count = parseInt(localStorage.getItem('clickCount') || '0');
+    let startTime = Date.now();
+    let clickTimes = [];
+
+    const countEl = document.getElementById('count');
+    const streakEl = document.getElementById('streak');
+    const cpsEl = document.getElementById('cps-display');
+    const btn = document.getElementById('clicker');
+
+    countEl.textContent = count;
+
+    // Session timer
+    setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const h = String(Math.floor(elapsed / 3600)).padStart(2,'0');
+      const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2,'0');
+      const s = String(elapsed % 60).padStart(2,'0');
+      document.getElementById('session-time').textContent = `${h}:${m}:${s}`;
+    }, 1000);
+
+    // CPS tracker
+    setInterval(() => {
+      const now = Date.now();
+      clickTimes = clickTimes.filter(t => now - t < 1000);
+      cpsEl.textContent = clickTimes.length.toFixed(2) + ' clicks/sec';
+    }, 100);
+
+    // Milestones
+    const milestones = [10,50,100,500,1000,5000,10000,50000,100000];
+    function getMilestone(n) {
+      if (milestones.includes(n)) return `🔥 ${n.toLocaleString()} clicks!`;
+      if (n % 1000 === 0 && n > 0) return `${(n/1000).toFixed(0)}K REACHED`;
+      return '';
+    }
+
+    // Spawn floating +1
+    function spawnParticle(x, y) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.textContent = '+1';
+      p.style.left = (x - 10 + (Math.random()*20 - 10)) + 'px';
+      p.style.top = (y - 10) + 'px';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 800);
+    }
+
+    // Click handler
+    btn.addEventListener('click', e => {
+      count++;
+      localStorage.setItem('clickCount', count);
+      countEl.textContent = count.toLocaleString();
+      clickTimes.push(Date.now());
+
+      // Bump animation
+      countEl.classList.remove('bump');
+      void countEl.offsetWidth;
+      countEl.classList.add('bump');
+      setTimeout(() => countEl.classList.remove('bump'), 120);
+
+      // Cursor pulse
+      cursor.classList.add('clicking');
+      setTimeout(() => cursor.classList.remove('clicking'), 100);
+
+      // Particle
+      spawnParticle(e.clientX, e.clientY);
+
+      // Streak / milestone
+      const ms = getMilestone(count);
+      if (ms) {
+        streakEl.textContent = ms;
+        setTimeout(() => streakEl.textContent = '', 2000);
+      }
+    });
+  </script>
+</body>
+</html>
