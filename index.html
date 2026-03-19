@@ -9,11 +9,13 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0a0a0a;
-      --fg: #f0ece0;
-      --accent: #ff3c00;
-      --muted: #2a2a2a;
-      --border: #333;
+      --bg: #e8f4fd;
+      --fg: #1a3a5c;
+      --accent: #4ab3f4;
+      --accent2: #1e90d6;
+      --white: #ffffff;
+      --border: #b8d9f0;
+      --muted: #7ab8e0;
     }
 
     html, body {
@@ -25,33 +27,30 @@
       cursor: none;
     }
 
-    /* Custom cursor */
     #cursor {
       position: fixed;
       width: 18px; height: 18px;
-      background: var(--accent);
+      background: var(--accent2);
       border-radius: 50%;
       pointer-events: none;
       transform: translate(-50%, -50%);
       transition: transform 0.08s ease, width 0.1s, height 0.1s;
       z-index: 9999;
-      mix-blend-mode: difference;
+      mix-blend-mode: multiply;
     }
-    #cursor.clicking {
-      width: 28px; height: 28px;
-    }
+    #cursor.clicking { width: 28px; height: 28px; }
 
-    /* Grain overlay */
     body::before {
       content: '';
       position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(74,179,244,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(255,255,255,0.5) 0%, transparent 55%),
+        radial-gradient(ellipse at 60% 20%, rgba(174,220,250,0.25) 0%, transparent 50%);
       pointer-events: none;
-      opacity: 0.4;
-      z-index: 1;
+      z-index: 0;
     }
 
-    /* Grid lines background */
     body::after {
       content: '';
       position: fixed; inset: 0;
@@ -59,7 +58,7 @@
         linear-gradient(var(--border) 1px, transparent 1px),
         linear-gradient(90deg, var(--border) 1px, transparent 1px);
       background-size: 60px 60px;
-      opacity: 0.2;
+      opacity: 0.4;
       pointer-events: none;
       z-index: 0;
     }
@@ -71,87 +70,117 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0;
     }
 
-    /* Counter display */
-    #counter-wrap {
+    #card {
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(12px);
+      border: 1.5px solid var(--border);
+      border-radius: 24px;
+      padding: 40px 60px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 20px;
+      box-shadow: 0 8px 40px rgba(30,100,180,0.10);
+      min-width: 340px;
     }
 
     #label {
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       letter-spacing: 0.3em;
       text-transform: uppercase;
-      color: #666;
-      margin-bottom: 4px;
+      color: var(--muted);
+      margin-bottom: 2px;
     }
 
     #count {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(6rem, 20vw, 14rem);
+      font-size: clamp(5rem, 18vw, 11rem);
       line-height: 1;
       color: var(--fg);
-      transition: transform 0.05s ease;
+      transition: transform 0.05s ease, color 0.05s;
       user-select: none;
-      position: relative;
     }
 
     #count.bump {
-      transform: scale(1.06);
-      color: var(--accent);
+      transform: scale(1.07);
+      color: var(--accent2);
     }
 
-    /* Scanline on counter */
-    #count::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 3px,
-        rgba(0,0,0,0.08) 3px,
-        rgba(0,0,0,0.08) 4px
-      );
-      pointer-events: none;
+    #count.loading { opacity: 0.4; }
+
+    .rule {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 16px 0;
     }
 
-    /* Click button */
     #clicker {
-      position: relative;
-      background: var(--fg);
-      color: var(--bg);
+      background: var(--accent2);
+      color: var(--white);
       border: none;
       font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(1.4rem, 4vw, 2.2rem);
-      letter-spacing: 0.12em;
-      padding: 18px 60px;
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      letter-spacing: 0.14em;
+      padding: 16px 56px;
       cursor: none;
-      transition: transform 0.08s ease, background 0.08s;
+      border-radius: 50px;
+      transition: transform 0.08s ease, background 0.1s, box-shadow 0.1s;
       outline: none;
-      clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
-      margin-top: 10px;
+      box-shadow: 0 4px 18px rgba(30,144,214,0.25);
+      margin-top: 4px;
     }
 
     #clicker:hover {
       background: var(--accent);
-      color: var(--fg);
+      box-shadow: 0 6px 28px rgba(30,144,214,0.35);
     }
 
     #clicker:active {
-      transform: scale(0.94) translateY(3px);
+      transform: scale(0.93) translateY(2px);
+      box-shadow: 0 2px 8px rgba(30,144,214,0.15);
     }
 
-    /* Decorative corner labels */
+    #live-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    #live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #4caf50;
+      animation: pulse 1.4s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    #streak {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--accent2);
+      margin-top: 10px;
+      min-height: 1.2em;
+      text-transform: uppercase;
+      font-weight: 700;
+      text-align: center;
+    }
+
     .corner {
       position: fixed;
-      font-size: 0.6rem;
-      letter-spacing: 0.2em;
-      color: #444;
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      color: var(--muted);
       text-transform: uppercase;
       z-index: 3;
     }
@@ -160,40 +189,20 @@
     .corner.bl { bottom: 20px; left: 24px; }
     .corner.br { bottom: 20px; right: 24px; text-align: right; }
 
-    /* Streak display */
-    #streak {
-      font-size: 0.65rem;
-      letter-spacing: 0.25em;
-      color: var(--accent);
-      margin-top: 14px;
-      min-height: 1.2em;
-      text-transform: uppercase;
-      transition: opacity 0.3s;
-    }
-
-    /* Floating +1 particles */
     .particle {
       position: fixed;
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.4rem;
-      color: var(--accent);
+      font-size: 1.5rem;
+      color: var(--accent2);
       pointer-events: none;
       z-index: 100;
-      animation: floatUp 0.8s ease-out forwards;
+      animation: floatUp 0.9s ease-out forwards;
       user-select: none;
     }
 
     @keyframes floatUp {
       0%   { opacity: 1; transform: translateY(0) scale(1); }
-      100% { opacity: 0; transform: translateY(-80px) scale(0.5); }
-    }
-
-    /* Horizontal rule decorations */
-    .rule {
-      width: min(320px, 80vw);
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border), transparent);
-      margin: 10px 0;
+      100% { opacity: 0; transform: translateY(-90px) scale(0.4); }
     }
   </style>
 </head>
@@ -203,42 +212,84 @@
   <span class="corner tl">CLICK<br>CLICK<br>CLICK</span>
   <span class="corner tr" id="session-time">00:00:00</span>
   <span class="corner bl" id="cps-display">0.00 clicks/sec</span>
-  <span class="corner br">v1.0.0</span>
+  <span class="corner br">global edition</span>
 
   <div id="app">
-    <div id="counter-wrap">
-      <div id="label">Total Clicks</div>
-      <div id="count">0</div>
+    <div id="card">
+      <div id="label">Global Clicks</div>
+      <div id="count" class="loading">...</div>
+      <div class="rule"></div>
+      <button id="clicker">Click Here</button>
+      <div id="live-row">
+        <div id="live-dot"></div>
+        <span>Live global counter</span>
+      </div>
+      <div id="streak"></div>
     </div>
-
-    <div class="rule"></div>
-
-    <button id="clicker">Click Here</button>
-
-    <div id="streak"></div>
   </div>
 
   <script>
-    // Cursor
+    const SUPABASE_URL = 'https://ykysxgusatawilrhxprk.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlreXN4Z3VzYXRhd2lscmh4cHJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NjAzOTksImV4cCI6MjA4OTUzNjM5OX0.c4gq9I2QoS4QiZpk_znI2rmO_MsOKJvL7IM3njObpNg';
+
     const cursor = document.getElementById('cursor');
     document.addEventListener('mousemove', e => {
       cursor.style.left = e.clientX + 'px';
       cursor.style.top = e.clientY + 'px';
     });
 
-    // State
-    let count = parseInt(localStorage.getItem('clickCount') || '0');
+    let count = 0;
     let startTime = Date.now();
     let clickTimes = [];
+    let pendingClicks = 0;
+    let flushTimeout = null;
 
     const countEl = document.getElementById('count');
     const streakEl = document.getElementById('streak');
     const cpsEl = document.getElementById('cps-display');
     const btn = document.getElementById('clicker');
 
-    countEl.textContent = count;
+    async function fetchCount() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/clicks?id=eq.1&select=count`, {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          }
+        });
+        const data = await res.json();
+        if (data && data[0]) {
+          count = data[0].count;
+          countEl.textContent = Number(count).toLocaleString();
+          countEl.classList.remove('loading');
+        }
+      } catch(e) {
+        countEl.textContent = '???';
+      }
+    }
 
-    // Session timer
+    async function flushClicks() {
+      if (pendingClicks === 0) return;
+      const toSend = pendingClicks;
+      pendingClicks = 0;
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_clicks`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ amount: toSend })
+        });
+      } catch(e) {
+        pendingClicks += toSend;
+      }
+    }
+
+    fetchCount();
+    setInterval(fetchCount, 3000);
+
     setInterval(() => {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       const h = String(Math.floor(elapsed / 3600)).padStart(2,'0');
@@ -247,58 +298,53 @@
       document.getElementById('session-time').textContent = `${h}:${m}:${s}`;
     }, 1000);
 
-    // CPS tracker
     setInterval(() => {
       const now = Date.now();
       clickTimes = clickTimes.filter(t => now - t < 1000);
       cpsEl.textContent = clickTimes.length.toFixed(2) + ' clicks/sec';
     }, 100);
 
-    // Milestones
-    const milestones = [10,50,100,500,1000,5000,10000,50000,100000];
-    function getMilestone(n) {
-      if (milestones.includes(n)) return `🔥 ${n.toLocaleString()} clicks!`;
-      if (n % 1000 === 0 && n > 0) return `${(n/1000).toFixed(0)}K REACHED`;
+    const milestones = [100,500,1000,5000,10000,50000,100000,500000,1000000];
+    function checkMilestone(n) {
+      if (milestones.includes(n)) return `🎉 ${Number(n).toLocaleString()} clicks reached!`;
+      if (n % 10000 === 0 && n > 0) return `${(n/1000).toFixed(0)}K CLICKS!`;
       return '';
     }
 
-    // Spawn floating +1
     function spawnParticle(x, y) {
       const p = document.createElement('div');
       p.className = 'particle';
       p.textContent = '+1';
       p.style.left = (x - 10 + (Math.random()*20 - 10)) + 'px';
-      p.style.top = (y - 10) + 'px';
+      p.style.top = (y - 20) + 'px';
       document.body.appendChild(p);
-      setTimeout(() => p.remove(), 800);
+      setTimeout(() => p.remove(), 900);
     }
 
-    // Click handler
     btn.addEventListener('click', e => {
       count++;
-      localStorage.setItem('clickCount', count);
-      countEl.textContent = count.toLocaleString();
+      pendingClicks++;
+      countEl.textContent = Number(count).toLocaleString();
       clickTimes.push(Date.now());
 
-      // Bump animation
       countEl.classList.remove('bump');
       void countEl.offsetWidth;
       countEl.classList.add('bump');
       setTimeout(() => countEl.classList.remove('bump'), 120);
 
-      // Cursor pulse
       cursor.classList.add('clicking');
       setTimeout(() => cursor.classList.remove('clicking'), 100);
 
-      // Particle
       spawnParticle(e.clientX, e.clientY);
 
-      // Streak / milestone
-      const ms = getMilestone(count);
+      const ms = checkMilestone(count);
       if (ms) {
         streakEl.textContent = ms;
-        setTimeout(() => streakEl.textContent = '', 2000);
+        setTimeout(() => streakEl.textContent = '', 2500);
       }
+
+      clearTimeout(flushTimeout);
+      flushTimeout = setTimeout(flushClicks, 500);
     });
   </script>
 </body>
